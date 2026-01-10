@@ -116,9 +116,92 @@ class ImageManager:
         Returns:
             画像が挿入された本文HTML
         """
-        # 将来の拡張用
-        # 見出し（<h2>）の後に画像を挿入する処理などを追加可能
-        return content
+        import re
+
+        # <h2>タグの位置を検索
+        h2_pattern = r'</h2>'
+        h2_matches = list(re.finditer(h2_pattern, content))
+
+        if not h2_matches or len(h2_matches) == 0:
+            print("  本文に<h2>タグが見つかりませんでした")
+            return content
+
+        # 挿入する画像数を決定（h2の数と最大数の小さい方）
+        num_images = min(len(h2_matches), max_images)
+
+        print(f"  本文に{num_images}枚の画像を挿入します")
+
+        # 画像を取得してWordPressにアップロード
+        uploaded_images = []
+        for i, keyword in enumerate(keywords):
+            if len(uploaded_images) >= num_images:
+                break
+
+            try:
+                print(f"    本文用画像検索中: {keyword}")
+
+                # Unsplashで画像検索
+                image_info = self.unsplash.get_best_image_for_keyword(keyword)
+
+                if not image_info:
+                    continue
+
+                # 画像ダウンロード
+                image_data = self.unsplash.download_image(
+                    image_url=image_info['url'],
+                    download_location=image_info['download_location']
+                )
+
+                # WordPressにアップロード
+                filename = f"unsplash_{image_info['id']}_inline.jpg"
+                media = self.wordpress.upload_media(
+                    image_data=image_data,
+                    filename=filename,
+                    alt_text=image_info.get('description', keyword)
+                )
+
+                uploaded_images.append({
+                    'url': media['source_url'],
+                    'alt': image_info.get('description', keyword),
+                    'photographer': image_info['photographer'],
+                    'photographer_url': image_info['photographer_url']
+                })
+                print(f"      ✓ 画像アップロード完了")
+
+            except Exception as e:
+                print(f"      画像取得エラー: {e}")
+                continue
+
+        if not uploaded_images:
+            print("  本文用画像を取得できませんでした")
+            return content
+
+        # <h2>タグの後に画像を挿入（後ろから挿入して位置がずれないようにする）
+        result = content
+        for i in range(num_images):
+            if i >= len(uploaded_images) or i >= len(h2_matches):
+                break
+
+            # i番目のh2の後に挿入
+            h2_match = h2_matches[i]
+            insert_position = h2_match.end()
+
+            img_data = uploaded_images[i]
+
+            # 画像HTMLを生成（figureタグで囲む）
+            img_html = f'''
+
+<figure class="wp-block-image size-large">
+    <img src="{img_data['url']}" alt="{img_data['alt']}" />
+    <figcaption>Photo by <a href="{img_data['photographer_url']}" target="_blank" rel="noopener">{img_data['photographer']}</a> on Unsplash</figcaption>
+</figure>
+'''
+
+            # 画像を挿入
+            result = result[:insert_position] + img_html + result[insert_position:]
+
+        print(f"  ✓ 本文に{len(uploaded_images)}枚の画像を挿入しました")
+        return result
 
 
 if __name__ == "__main__":
