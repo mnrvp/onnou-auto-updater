@@ -164,19 +164,19 @@ def main():
         print(f"エラー: 記事生成に失敗しました - {e}")
         sys.exit(1)
 
-    # 記事本文に画像を挿入（画像機能が有効な場合）
-    if image_manager:
-        print("\n記事本文に画像を挿入中...")
-        try:
-            keywords = theme.get('keywords', [])
-            article['content'] = image_manager.insert_images_into_content(
-                content=article['content'],
-                keywords=keywords,
-                max_images=2
-            )
-        except Exception as e:
-            print(f"⚠ 本文画像挿入エラー: {e}")
-            print("  画像なしで続行します")
+    # 記事本文に画像を挿入（現在無効）
+    # if image_manager:
+    #     print("\n記事本文に画像を挿入中...")
+    #     try:
+    #         keywords = theme.get('keywords', [])
+    #         article['content'] = image_manager.insert_images_into_content(
+    #             content=article['content'],
+    #             keywords=keywords,
+    #             max_images=2
+    #         )
+    #     except Exception as e:
+    #         print(f"⚠ 本文画像挿入エラー: {e}")
+    #         print("  画像なしで続行します")
 
     # WordPressに下書き投稿
     print("\nWordPressに投稿中...")
