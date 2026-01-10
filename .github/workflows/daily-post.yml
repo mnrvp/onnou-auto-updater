@@ -23,6 +23,20 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Debug - Check environment variables
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+        run: |
+          echo "環境変数チェック:"
+          echo "GEMINI_API_KEY is set: $( [ -n "$GEMINI_API_KEY" ] && echo 'YES' || echo 'NO' )"
+          echo "WP_SITE_URL: $WP_SITE_URL"
+          echo "WP_USERNAME: $WP_USERNAME"
+          echo "WP_APP_PASSWORD is set: $( [ -n "$WP_APP_PASSWORD" ] && echo 'YES (length: ${#WP_APP_PASSWORD})' || echo 'NO' )"
+          echo "WP_APP_PASSWORD length: ${#WP_APP_PASSWORD}"
+
       - name: Generate and post article
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -32,7 +46,7 @@ jobs:
           AUTO_PUBLISH: '0'  # 0=下書き, 1=自動公開
         run: |
           cd src
-          python article_generator.py
+          python -u article_generator.py
 
       - name: Commit updated themes.json
         run: |
