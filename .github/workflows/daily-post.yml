@@ -2,9 +2,8 @@ name: Daily Article Post
 
 on:
   schedule:
-    # 毎日 午前9時（JST = UTC+9）に実行 → UTC 0:00
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 手動実行も可能
+  workflow_dispatch:
 
 jobs:
   generate-and-post:
@@ -23,6 +22,7 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      # ===== ここからデバッグ用 =====
       - name: Debug - Check environment variables
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -30,12 +30,30 @@ jobs:
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
         run: |
-          echo "環境変数チェック:"
+          echo "=== 環境変数チェック ==="
           echo "GEMINI_API_KEY is set: $( [ -n "$GEMINI_API_KEY" ] && echo 'YES' || echo 'NO' )"
           echo "WP_SITE_URL: $WP_SITE_URL"
           echo "WP_USERNAME: $WP_USERNAME"
-          echo "WP_APP_PASSWORD is set: $( [ -n "$WP_APP_PASSWORD" ] && echo 'YES (length: ${#WP_APP_PASSWORD})' || echo 'NO' )"
+          echo "WP_APP_PASSWORD is set: $( [ -n "$WP_APP_PASSWORD" ] && echo 'YES' || echo 'NO' )"
           echo "WP_APP_PASSWORD length: ${#WP_APP_PASSWORD}"
+
+      - name: Debug WordPress REST API (no auth)
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+        run: |
+          echo "=== TEST 1: NO AUTH /wp-json/ ==="
+          curl -i "${WP_SITE_URL%/}/wp-json/"
+
+      - name: Debug WordPress REST API (with auth)
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+        run: |
+          echo "=== TEST 2: BASIC AUTH /wp-json/wp/v2/posts ==="
+          curl -i -u "$WP_USERNAME:$WP_APP_PASSWORD" \
+            "${WP_SITE_URL%/}/wp-json/wp/v2/posts?per_page=1"
+      # ===== ここまでデバッグ用 =====
 
       - name: Generate and post article
         env:
@@ -43,7 +61,7 @@ jobs:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          AUTO_PUBLISH: '0'  # 0=下書き, 1=自動公開
+          AUTO_PUBLISH: '0'
         run: |
           cd src
           python -u article_generator.py
