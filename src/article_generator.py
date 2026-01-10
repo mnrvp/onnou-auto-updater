@@ -195,6 +195,28 @@ def main():
     unused_count = theme_manager.get_unused_count()
     print(f"\n未使用テーマ数: {unused_count}")
 
+    # テーマが3個以下の場合、自動で3個追加
+    if unused_count <= 3:
+        print(f"\nテーマが少なくなっています（残り{unused_count}個）")
+        print("新しいテーマを自動生成中...")
+        try:
+            new_themes = theme_manager.generate_new_themes(
+                api_key=os.getenv('GEMINI_API_KEY'),
+                count=3
+            )
+            theme_manager.add_themes(new_themes)
+
+            # 生成されたテーマを表示
+            print("\n生成されたテーマ:")
+            for theme in new_themes:
+                print(f"  - {theme['title']}")
+
+            unused_count = theme_manager.get_unused_count()
+            print(f"\n更新後の未使用テーマ数: {unused_count}")
+        except Exception as e:
+            print(f"⚠ テーマ自動生成エラー: {e}")
+            print("  既存のテーマで続行します")
+
     if unused_count == 0:
         print("利用可能なテーマがありません")
         sys.exit(0)

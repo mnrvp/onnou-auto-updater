@@ -129,6 +129,51 @@
       ],
       "target_pain": "プラグインをたくさん持っているのに良い音が作れない",
       "approach": "ツールより先に原理を理解する、最小構成で音を作る練習",
+      "used": true
+    },
+    {
+      "id": 11,
+      "title": "ボーカルがオケに埋もれるのは「居場所」を作ってないから",
+      "keywords": [
+        "vocal mix",
+        "muddy vocals",
+        "frequency conflict",
+        "panning",
+        "dynamic processing",
+        "balance"
+      ],
+      "target_pain": "せっかく録ったボーカルがオケに馴染まず、埋もれて聞こえてしまう。",
+      "approach": "ボーカルと他楽器の周波数帯域、パン、ダイナミクスを整理し「居場所」を作る重要性を解説。",
+      "used": true
+    },
+    {
+      "id": 12,
+      "title": "EQで音が不自然になるのは「いらない音」を知らないから",
+      "keywords": [
+        "EQ",
+        "equalization",
+        "harsh sound",
+        "muddy sound",
+        "subtractive EQ",
+        "frequency"
+      ],
+      "target_pain": "EQをかけると音がキンキンしたり、ブーミーになったり、不自然になる。",
+      "approach": "EQは主に不要な周波数を「カット」することが重要であるという考え方（引き算の重要性）を解説。",
+      "used": false
+    },
+    {
+      "id": 13,
+      "title": "録音した音がペラペラなのは「マイク」より「空気」のせい",
+      "keywords": [
+        "recording",
+        "microphone",
+        "room acoustics",
+        "mic placement",
+        "gain staging",
+        "thin sound"
+      ],
+      "target_pain": "録音したボーカルや楽器の音が安っぽく、奥行きや厚みがない。",
+      "approach": "マイクの性能だけでなく、部屋の鳴りやマイキング、ゲイン設定といった「空気（環境）」の重要性を解説。",
       "used": false
     }
   ]

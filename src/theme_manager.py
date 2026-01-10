@@ -3,7 +3,8 @@
 """
 import json
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+import google.generativeai as genai
 
 
 class ThemeManager:
@@ -86,6 +87,102 @@ class ThemeManager:
             theme['used'] = False
 
         self._save_themes()
+
+    def generate_new_themes(self, api_key: str, count: int = 5, model: str = "models/gemini-2.5-flash") -> List[Dict]:
+        """
+        AIで新しいテーマを自動生成する
+
+        Args:
+            api_key: Gemini APIキー
+            count: 生成するテーマ数
+            model: 使用するGeminiモデル
+
+        Returns:
+            生成されたテーマのリスト
+        """
+        genai.configure(api_key=api_key)
+        gemini_model = genai.GenerativeModel(model)
+
+        # 現在のテーマを参考にして新しいテーマを生成
+        existing_themes = self.themes_data.get('themes', [])
+        max_id = max([t['id'] for t in existing_themes]) if existing_themes else 0
+
+        prompt = f"""あなたは「音脳ラボ」というDTM/宅録専門ブログのテーマ企画担当です。
+初心者〜中級者向けの実践的な記事テーマを{count}個提案してください。
+
+# 既存テーマ（重複厳禁）
+{chr(10).join([f"- {t['title']}" for t in existing_themes[:5]])}
+
+# テーマ条件
+1. 初心者の具体的な悩みに焦点
+2. 「なぜ」を解明する内容
+3. 失敗パターン・勘違いを解消
+4. DTM/宅録/ミックス/マスタリング分野
+5. 初心者でも興味を持てる
+
+# 重要：完全で正しいJSON配列のみ出力
+以下の形式で{count}個を出力：
+
+[
+  {{"title":"タイトル","keywords":["keyword1","keyword2","keyword3","keyword4"],"target_pain":"悩み","approach":"解決策"}},
+  {{"title":"タイトル","keywords":["keyword1","keyword2","keyword3","keyword4"],"target_pain":"悩み","approach":"解決策"}}
+]
+
+注意：
+- JSON配列のみ出力（説明不要）
+- keywordsは英語
+- titleは短く簡潔に（40文字以内）
+- target_painとapproachも簡潔に（各50文字以内）
+"""
+
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config={
+                'temperature': 0.9,
+                'max_output_tokens': 3000,
+            }
+        )
+
+        # JSONをパース
+        import re
+        response_text = response.text.strip()
+
+        # コードブロックを削除（```json ... ``` の形式）
+        response_text = re.sub(r'^```json\s*', '', response_text)
+        response_text = re.sub(r'\s*```$', '', response_text)
+
+        try:
+            new_themes_data = json.loads(response_text)
+        except json.JSONDecodeError as e:
+            print(f"JSON解析エラー: {e}")
+            print(f"レスポンス: {response_text}")
+            raise
+
+        # IDとusedフラグを追加
+        new_themes = []
+        for i, theme_data in enumerate(new_themes_data):
+            theme = {
+                'id': max_id + i + 1,
+                'title': theme_data['title'],
+                'keywords': theme_data['keywords'],
+                'target_pain': theme_data['target_pain'],
+                'approach': theme_data['approach'],
+                'used': False
+            }
+            new_themes.append(theme)
+
+        return new_themes
+
+    def add_themes(self, new_themes: List[Dict]) -> None:
+        """
+        新しいテーマをthemes.jsonに追加する
+
+        Args:
+            new_themes: 追加するテーマのリスト
+        """
+        self.themes_data['themes'].extend(new_themes)
+        self._save_themes()
+        print(f"✓ {len(new_themes)}個の新しいテーマを追加しました")
 
 
 if __name__ == "__main__":
