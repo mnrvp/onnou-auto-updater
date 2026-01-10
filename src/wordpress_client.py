@@ -136,6 +136,77 @@ class WordPressClient:
         response.raise_for_status()
         return response.json()
 
+    def upload_media(
+        self,
+        image_data: bytes,
+        filename: str,
+        alt_text: str = ""
+    ) -> Dict:
+        """
+        メディアをアップロードする
+
+        Args:
+            image_data: 画像データ（バイナリ）
+            filename: ファイル名
+            alt_text: 代替テキスト
+
+        Returns:
+            アップロードされたメディア情報
+
+        Raises:
+            requests.exceptions.HTTPError: API呼び出しが失敗した場合
+        """
+        endpoint = f"{self.api_base}/media"
+
+        # Content-Type を適切に設定
+        headers = self.headers.copy()
+        headers['Content-Type'] = 'image/jpeg'
+        headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        response = requests.post(
+            endpoint,
+            headers=headers,
+            data=image_data
+        )
+
+        response.raise_for_status()
+        media_data = response.json()
+
+        # alt_textを設定
+        if alt_text:
+            media_id = media_data['id']
+            update_endpoint = f"{self.api_base}/media/{media_id}"
+            requests.post(
+                update_endpoint,
+                headers=self.headers,
+                json={'alt_text': alt_text}
+            )
+
+        return media_data
+
+    def set_featured_image(
+        self,
+        post_id: int,
+        media_id: int
+    ) -> Dict:
+        """
+        投稿にアイキャッチ画像を設定する
+
+        Args:
+            post_id: 投稿ID
+            media_id: メディアID
+
+        Returns:
+            更新された投稿情報
+
+        Raises:
+            requests.exceptions.HTTPError: API呼び出しが失敗した場合
+        """
+        return self.update_post(
+            post_id=post_id,
+            **{'featured_media': media_id}
+        )
+
     def test_connection(self) -> bool:
         """
         接続テストを行う

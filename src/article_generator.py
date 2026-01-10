@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from theme_manager import ThemeManager
 from wordpress_client import WordPressClient
+from unsplash_client import UnsplashClient
+from image_manager import ImageManager
 
 
 class ArticleGenerator:
@@ -123,6 +125,17 @@ def main():
         app_password=os.getenv('WP_APP_PASSWORD')
     )
 
+    # 画像機能の初期化（Unsplashが設定されている場合のみ）
+    image_manager = None
+    if os.getenv('UNSPLASH_ACCESS_KEY'):
+        unsplash_client = UnsplashClient(
+            access_key=os.getenv('UNSPLASH_ACCESS_KEY')
+        )
+        image_manager = ImageManager(unsplash_client, wp_client)
+        print("✓ Unsplash画像機能が有効です")
+    else:
+        print("⚠ Unsplash設定なし - 画像なしで投稿します")
+
     # WordPress接続テスト
     print("WordPress接続をテスト中...")
     if not wp_client.test_connection():
@@ -170,6 +183,19 @@ def main():
         print(f"  投稿ID: {post_id}")
         print(f"  ステータス: {status}")
         print(f"  URL: {post_url}")
+
+        # アイキャッチ画像を追加（画像機能が有効な場合）
+        if image_manager:
+            print("\nアイキャッチ画像を追加中...")
+            try:
+                keywords = theme.get('keywords', [])
+                image_manager.add_featured_image_to_post(
+                    post_id=post_id,
+                    keywords=keywords
+                )
+            except Exception as e:
+                print(f"⚠ 画像追加エラー: {e}")
+                print("  画像なしで続行します")
 
         # テーマを使用済みにマーク
         theme_manager.mark_as_used(theme['id'])
