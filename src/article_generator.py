@@ -13,7 +13,7 @@ from wordpress_client import WordPressClient
 class ArticleGenerator:
     """Gemini APIを使った記事生成クラス"""
 
-    def __init__(self, api_key: str, model: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: str, model: str = "models/gemini-2.5-flash"):
         """
         Args:
             api_key: Google AI APIキー

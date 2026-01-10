@@ -9,11 +9,17 @@ from typing import Dict, Optional
 class ThemeManager:
     """記事テーマの選定と管理を行うクラス"""
 
-    def __init__(self, themes_file: str = "data/themes.json"):
+    def __init__(self, themes_file: str = None):
         """
         Args:
             themes_file: テーマデータのJSONファイルパス
         """
+        if themes_file is None:
+            # プロジェクトルートのdataフォルダを参照
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
+            themes_file = os.path.join(project_root, "data", "themes.json")
+
         self.themes_file = themes_file
         self.themes_data = self._load_themes()
 
