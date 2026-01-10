@@ -1,5 +1,5 @@
 # AI API
-anthropic>=0.39.0
+google-generativeai>=0.3.0
 
 # HTTP Client
 requests>=2.31.0

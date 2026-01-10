@@ -5,22 +5,22 @@ import os
 import sys
 from datetime import datetime
 from dotenv import load_dotenv
-from anthropic import Anthropic
+import google.generativeai as genai
 from theme_manager import ThemeManager
 from wordpress_client import WordPressClient
 
 
 class ArticleGenerator:
-    """Claude APIを使った記事生成クラス"""
+    """Gemini APIを使った記事生成クラス"""
 
-    def __init__(self, api_key: str, model: str = "claude-3-5-sonnet-20241022"):
+    def __init__(self, api_key: str, model: str = "gemini-1.5-flash"):
         """
         Args:
-            api_key: Anthropic APIキー
-            model: 使用するClaudeモデル
+            api_key: Google AI APIキー
+            model: 使用するGeminiモデル
         """
-        self.client = Anthropic(api_key=api_key)
-        self.model = model
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(model)
 
     def generate_article(self, theme: dict) -> dict:
         """
@@ -35,18 +35,17 @@ class ArticleGenerator:
         # プロンプトの構築
         prompt = self._build_prompt(theme)
 
-        # Claude APIで記事生成
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=4000,
-            temperature=0.7,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+        # Gemini APIで記事生成
+        response = self.model.generate_content(
+            prompt,
+            generation_config={
+                'temperature': 0.7,
+                'max_output_tokens': 4000,
+            }
         )
 
         # レスポンスから記事本文を抽出
-        article_content = message.content[0].text
+        article_content = response.text
 
         return {
             'title': theme['title'],
@@ -108,7 +107,7 @@ def main():
     load_dotenv()
 
     # 必須環境変数のチェック
-    required_vars = ['CLAUDE_API_KEY', 'WP_SITE_URL', 'WP_USERNAME', 'WP_APP_PASSWORD']
+    required_vars = ['GEMINI_API_KEY', 'WP_SITE_URL', 'WP_USERNAME', 'WP_APP_PASSWORD']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:
@@ -117,7 +116,7 @@ def main():
 
     # 各クライアントの初期化
     theme_manager = ThemeManager()
-    article_generator = ArticleGenerator(api_key=os.getenv('CLAUDE_API_KEY'))
+    article_generator = ArticleGenerator(api_key=os.getenv('GEMINI_API_KEY'))
     wp_client = WordPressClient(
         site_url=os.getenv('WP_SITE_URL'),
         username=os.getenv('WP_USERNAME'),
