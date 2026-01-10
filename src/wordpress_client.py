@@ -1,0 +1,176 @@
+"""
+WordPress REST APIとの連携を行うモジュール
+"""
+import requests
+from typing import Dict, Optional
+import base64
+
+
+class WordPressClient:
+    """WordPress REST APIクライアント"""
+
+    def __init__(self, site_url: str, username: str, app_password: str):
+        """
+        Args:
+            site_url: WordPressサイトのURL（例: https://example.com）
+            username: WordPressユーザー名
+            app_password: WordPressアプリケーションパスワード
+        """
+        self.site_url = site_url.rstrip('/')
+        self.api_base = f"{self.site_url}/wp-json/wp/v2"
+        self.username = username
+        self.app_password = app_password
+
+        # Basic認証のヘッダーを準備
+        credentials = f"{username}:{app_password}"
+        token = base64.b64encode(credentials.encode()).decode()
+        self.headers = {
+            'Authorization': f'Basic {token}',
+            'Content-Type': 'application/json'
+        }
+
+    def create_post(
+        self,
+        title: str,
+        content: str,
+        status: str = 'draft',
+        categories: Optional[list] = None,
+        tags: Optional[list] = None
+    ) -> Dict:
+        """
+        新規投稿を作成する
+
+        Args:
+            title: 投稿タイトル
+            content: 投稿本文（HTML）
+            status: 投稿ステータス（draft, publish, private等）
+            categories: カテゴリーIDのリスト
+            tags: タグIDのリスト
+
+        Returns:
+            作成された投稿の情報
+
+        Raises:
+            requests.exceptions.HTTPError: API呼び出しが失敗した場合
+        """
+        endpoint = f"{self.api_base}/posts"
+
+        post_data = {
+            'title': title,
+            'content': content,
+            'status': status,
+        }
+
+        if categories:
+            post_data['categories'] = categories
+
+        if tags:
+            post_data['tags'] = tags
+
+        response = requests.post(
+            endpoint,
+            headers=self.headers,
+            json=post_data
+        )
+
+        response.raise_for_status()
+        return response.json()
+
+    def get_post(self, post_id: int) -> Dict:
+        """
+        投稿を取得する
+
+        Args:
+            post_id: 投稿ID
+
+        Returns:
+            投稿情報
+
+        Raises:
+            requests.exceptions.HTTPError: API呼び出しが失敗した場合
+        """
+        endpoint = f"{self.api_base}/posts/{post_id}"
+
+        response = requests.get(endpoint, headers=self.headers)
+        response.raise_for_status()
+        return response.json()
+
+    def update_post(
+        self,
+        post_id: int,
+        title: Optional[str] = None,
+        content: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> Dict:
+        """
+        投稿を更新する
+
+        Args:
+            post_id: 投稿ID
+            title: 新しいタイトル（省略可）
+            content: 新しい本文（省略可）
+            status: 新しいステータス（省略可）
+
+        Returns:
+            更新された投稿情報
+
+        Raises:
+            requests.exceptions.HTTPError: API呼び出しが失敗した場合
+        """
+        endpoint = f"{self.api_base}/posts/{post_id}"
+
+        post_data = {}
+        if title is not None:
+            post_data['title'] = title
+        if content is not None:
+            post_data['content'] = content
+        if status is not None:
+            post_data['status'] = status
+
+        response = requests.post(
+            endpoint,
+            headers=self.headers,
+            json=post_data
+        )
+
+        response.raise_for_status()
+        return response.json()
+
+    def test_connection(self) -> bool:
+        """
+        接続テストを行う
+
+        Returns:
+            接続成功時True、失敗時False
+        """
+        try:
+            endpoint = f"{self.api_base}/posts"
+            response = requests.get(
+                endpoint,
+                headers=self.headers,
+                params={'per_page': 1}
+            )
+            response.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"接続テスト失敗: {e}")
+            return False
+
+
+if __name__ == "__main__":
+    # テスト実行用
+    import os
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    client = WordPressClient(
+        site_url=os.getenv('WP_SITE_URL'),
+        username=os.getenv('WP_USERNAME'),
+        app_password=os.getenv('WP_APP_PASSWORD')
+    )
+
+    if client.test_connection():
+        print("WordPress接続成功！")
+    else:
+        print("WordPress接続失敗")
