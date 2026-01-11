@@ -2,59 +2,18 @@ name: Daily Article Post
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
   generate-and-post:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      # ===== ここからデバッグ用 =====
-      - name: Debug - Check environment variables
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-        run: |
-          echo "=== 環境変数チェック ==="
-          echo "GEMINI_API_KEY is set: $( [ -n "$GEMINI_API_KEY" ] && echo 'YES' || echo 'NO' )"
-          echo "WP_SITE_URL: $WP_SITE_URL"
-          echo "WP_USERNAME: $WP_USERNAME"
-          echo "WP_APP_PASSWORD is set: $( [ -n "$WP_APP_PASSWORD" ] && echo 'YES' || echo 'NO' )"
-          echo "WP_APP_PASSWORD length: ${#WP_APP_PASSWORD}"
-
-      - name: Debug WordPress REST API (no auth)
-        env:
-          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
-        run: |
-          echo "=== TEST 1: NO AUTH /wp-json/ ==="
-          curl -i "${WP_SITE_URL%/}/wp-json/"
-
-      - name: Debug WordPress REST API (with auth)
-        env:
-          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-        run: |
-          echo "=== TEST 2: BASIC AUTH /wp-json/wp/v2/posts ==="
-          curl -i -u "$WP_USERNAME:$WP_APP_PASSWORD" \
-            "${WP_SITE_URL%/}/wp-json/wp/v2/posts?per_page=1"
-      # ===== ここまでデバッグ用 =====
-
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
       - name: Generate and post article
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -62,20 +21,17 @@ jobs:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          AUTO_PUBLISH: '0'
+          AUTO_PUBLISH: "0"
         run: |
           cd src
-          python -u article_generator.py
-
-      - name: Commit updated themes.json
+          python article_generator.py
+      - name: Commit updated themes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/themes.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update themes: mark as used [skip ci]"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update themes [skip ci]"
+      - uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
