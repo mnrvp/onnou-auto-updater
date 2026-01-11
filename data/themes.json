@@ -187,7 +187,7 @@
       ],
       "target_pain": "EQをいじっても音が良くならない、効果がわからない。",
       "approach": "各周波数帯の役割を理解し、正しいEQの聞き分け方と実践法を解説。",
-      "used": false
+      "used": true
     },
     {
       "id": 15,
@@ -215,6 +215,46 @@
       ],
       "target_pain": "ステレオで良い音なのにモノラルで聞くと音が痩せたり消えたりする。",
       "approach": "位相の重要性を理解し、モノラル互換性を確保するミックスのコツを解説。",
+      "used": false
+    },
+    {
+      "id": 17,
+      "title": "ボーカルがミックスに馴染まない原因は「場所取り」",
+      "keywords": [
+        "vocal mixing",
+        "EQ",
+        "frequency",
+        "arrangement"
+      ],
+      "target_pain": "ボーカルがオケに埋もれる、浮いて聞こえる、存在感がない",
+      "approach": "周波数帯域におけるボーカルの「場所」の考え方を解説し、馴染ませる",
+      "used": false
+    },
+    {
+      "id": 18,
+      "title": "低音がモコモコして締まらないのは「位相」と「共鳴」",
+      "keywords": [
+        "bass mixing",
+        "kick mixing",
+        "low end",
+        "phase",
+        "resonance"
+      ],
+      "target_pain": "低音がモコモコして締まりがない、キックとベースが喧嘩する",
+      "approach": "低音の位相問題と共鳴による濁りを解消し、分離させる手法を解説",
+      "used": false
+    },
+    {
+      "id": 19,
+      "title": "音が小さく薄いのは「ゲインステージング」不足",
+      "keywords": [
+        "gain staging",
+        "dynamics",
+        "volume",
+        "signal flow"
+      ],
+      "target_pain": "ミックス全体の音量が小さく、音が薄く感じる、迫力がない",
+      "approach": "DTMにおけるゲインステージングの重要性と適切な設定方法を解説",
       "used": false
     }
   ]
