@@ -1,35 +1,35 @@
-  name: Daily Article Post
-  on:
-    schedule:
-      - cron: "0 0 * * *"
-    workflow_dispatch:
-  jobs:
-    generate-and-post:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: "3.11"
-        - run: pip install -r requirements.txt
-        - name: Generate and post article
-          env:
-            GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-            UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-            WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
-            WP_USERNAME: ${{ secrets.WP_USERNAME }}
-            WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-            AUTO_PUBLISH: "0"
-          run: |
-            cd src
-            python article_generator.py
-        - name: Commit updated themes
-          run: |
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git add data/themes.json
-            git diff --quiet && git diff --staged --quiet || git commit -m "Update themes [skip ci]"
-        - uses: ad-m/github-push-action@master
-          with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            branch: ${{ github.ref }}
+name: Daily Article Post
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Generate and post article
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          AUTO_PUBLISH: "0"
+        run: |
+          cd src
+          python article_generator.py
+      - name: Commit updated themes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/themes.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update themes [skip ci]"
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
