@@ -81,6 +81,52 @@ python src/article_generator.py
 
 デフォルトで毎日午前9時（JST）に自動実行されます。
 
+### Xサーバーのcronから確実に実行する方法（推奨）
+
+GitHub Actionsのスケジュール実行は不安定なため、Xサーバーのcronから確実にトリガーする方法を推奨します。
+
+#### 1. GitHub Personal Access Tokenの作成
+
+1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. 「Generate new token」→ 「Generate new token (classic)」
+3. スコープで `workflow` にチェック
+4. トークンをコピーして保存
+
+#### 2. Xサーバーに配置
+
+`trigger-workflow.sh` をXサーバーにアップロード（例：`/home/youraccount/scripts/`）
+
+#### 3. 実行権限を付与
+
+```bash
+chmod +x /home/youraccount/scripts/trigger-workflow.sh
+```
+
+#### 4. Xサーバーのcron設定
+
+サーバーパネル → Cron設定 で以下を設定：
+
+**コマンド:**
+```bash
+export GITHUB_TOKEN="your_github_token_here"; /home/youraccount/scripts/trigger-workflow.sh
+```
+
+**実行時刻:** 毎日0時（または任意の時刻）
+- 分: 0
+- 時: 0
+- 日: *
+- 月: *
+- 曜日: *
+
+#### 5. 動作確認
+
+設定後、以下で動作確認：
+```bash
+export GITHUB_TOKEN="your_token"; ./trigger-workflow.sh
+```
+
+成功すると「ワークフローのトリガーに成功しました」と表示され、GitHub Actionsが実行されます。
+
 ## 🔐 安全設計
 
 - 最初は全て **draft（下書き）** として投稿
