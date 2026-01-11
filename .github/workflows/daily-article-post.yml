@@ -1,9 +1,9 @@
 name: Daily Article Post
 
-# テスト用: 10:50（JST）/ UTC 1:50に実行
+# 毎日午前9時（JST）/ UTC 0時に自動実行
 on:
   schedule:
-    - cron: '50 1 * * *'  # テスト用 - 後で '0 0 * * *' に戻す
+    - cron: '0 0 * * *'  # UTC 0:00 = JST 9:00
   workflow_dispatch:
 
 jobs:
