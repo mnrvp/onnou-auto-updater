@@ -50,7 +50,7 @@ class ArticleGenerator:
             prompt,
             generation_config={
                 'temperature': 0.8,
-                'max_output_tokens': 5000,
+                'max_output_tokens': 8000,  # 2000-3000文字対応
             }
         )
 
@@ -58,19 +58,24 @@ class ArticleGenerator:
         full_response = response.text
 
         import re
-        title_match = re.search(r'\[TITLE\](.*?)\[/TITLE\]', full_response, re.DOTALL)
-        description_match = re.search(r'\[DESCRIPTION\](.*?)\[/DESCRIPTION\]', full_response, re.DOTALL)
-        tags_match = re.search(r'\[TAGS\](.*?)\[/TAGS\]', full_response, re.DOTALL)
-        content_match = re.search(r'\[CONTENT\](.*?)\[/CONTENT\]', full_response, re.DOTALL)
+        # より柔軟なパターン（改行や空白を許容）
+        title_match = re.search(r'\[TITLE\]\s*(.*?)\s*\[/TITLE\]', full_response, re.DOTALL)
+        description_match = re.search(r'\[DESCRIPTION\]\s*(.*?)\s*\[/DESCRIPTION\]', full_response, re.DOTALL)
+        tags_match = re.search(r'\[TAGS\]\s*(.*?)\s*\[/TAGS\]', full_response, re.DOTALL)
+        content_match = re.search(r'\[CONTENT\]\s*(.*?)\s*\[/CONTENT\]', full_response, re.DOTALL)
+
+        print(f"  デバッグ: TITLE抽出={bool(title_match)}, CONTENT抽出={bool(content_match)}")
 
         if title_match and content_match:
             article_title = title_match.group(1).strip()
             article_description = description_match.group(1).strip() if description_match else ""
             article_tags = tags_match.group(1).strip() if tags_match else ""
             article_content = content_match.group(1).strip()
+            print(f"  ✓ タイトル抽出成功: {article_title[:50]}...")
         else:
             # フォーマットが正しくない場合はフォールバック
             print("  ⚠ タイトル抽出失敗、テーマタイトルを使用")
+            print(f"  デバッグ: レスポンス先頭200文字: {full_response[:200]}")
             article_title = theme['title']
             article_description = ""
             article_tags = ""
