@@ -54,11 +54,25 @@ class ArticleGenerator:
             }
         )
 
-        # レスポンスから記事本文を抽出
-        article_content = response.text
+        # レスポンスからタイトルと本文を抽出
+        full_response = response.text
+
+        # [TITLE]...[/TITLE] と [CONTENT]...[/CONTENT] を抽出
+        import re
+        title_match = re.search(r'\[TITLE\](.*?)\[/TITLE\]', full_response, re.DOTALL)
+        content_match = re.search(r'\[CONTENT\](.*?)\[/CONTENT\]', full_response, re.DOTALL)
+
+        if title_match and content_match:
+            article_title = title_match.group(1).strip()
+            article_content = content_match.group(1).strip()
+        else:
+            # フォーマットが正しくない場合はフォールバック
+            print("  ⚠ タイトル抽出失敗、テーマタイトルを使用")
+            article_title = theme['title']
+            article_content = full_response
 
         return {
-            'title': theme['title'],
+            'title': article_title,
             'content': article_content,
             'theme_id': theme['id']
         }
@@ -128,14 +142,48 @@ class ArticleGenerator:
 ## まとめ（100-150文字）
 要点を3つ以内に凝縮し、次のアクションを提示
 
+# SEO最適化タイトルの作成
+まず、テーマに基づいてSEO最適化されたタイトルを生成してください。
+
+## タイトルのパターン（以下のいずれかを選択）
+
+**パターン1: 年号＋数字系**
+- 【2026年版】〜初心者が絶対にハマるN個の落とし穴｜後悔しないための〜
+- 【最新版】知らないと損するN個の〜｜プロが教える〜
+
+**パターン2: ノウハウ系**
+- 【保存版】〜で差がつくN個のテクニック｜〜が教える実践的手順
+- 【完全ガイド】〜を劇的に改善するN個の方法｜初心者でもできる〜
+
+**パターン3: 問題解決系**
+- 〜できない原因はコレ！即効で改善するN個のチェックポイント
+- 〜が〜しない理由とは？今すぐ試せるN個の解決策
+
+**パターン4: 比較・選び方系**
+- 〜と〜の違いとは？初心者でも分かる使い分け完全ガイド
+- 【徹底比較】〜選びで失敗しないN個のポイント｜2026年最新版
+
+## タイトル作成のルール
+1. 具体的な数字を入れる（N個、N つなど）
+2. ターゲット明確（初心者、DTM er、宅録派など）
+3. ベネフィット明示（後悔しない、差がつく、劇的に改善など）
+4. 強い言葉を使う（絶対に、即効、完全、徹底など）
+5. 30〜40文字程度
+
 # 出力形式
-HTML形式で出力してください。以下のタグのみ使用：
+以下の形式で出力してください：
+
+[TITLE]
+SEO最適化されたタイトルをここに
+[/TITLE]
+
+[CONTENT]
+HTML形式の記事本文（以下のタグのみ使用）：
 - <h2>, <h3>（見出し）
 - <p>（段落）
 - <strong>（強調）
 - <ul>, <li>（箇条書き）
-
-記事本文のみを出力し、タイトルは含めないでください。
+[/CONTENT]
 
 # 読みやすさの重要ルール
 1. **段落は短く**: 1段落は2-4文まで。長い説明は複数の<p>タグに分割すること
@@ -155,6 +203,17 @@ HTML形式で出力してください。以下のタグのみ使用：
 <h3>ベロシティレイヤーを活用しましょう</h3>
 
 <p>ほとんどのドラム音源には、ベロシティの強弱に応じて異なるサンプル（実際に録音された音）が鳴る仕組みがあります。これを「ベロシティレイヤー」と呼びます。</p>
+
+# 出力例
+[TITLE]
+モノラルで音が消える原因はコレ！即効で改善する5つのチェックポイント
+[/TITLE]
+
+[CONTENT]
+<h2>モノラルで聴くと音が消える現象</h2>
+<p>ステレオで聴いた時は問題ないのに、モノラルにすると特定の音が消えたり小さくなったりする...。</p>
+...（記事本文）...
+[/CONTENT]
 """
         return prompt
 
