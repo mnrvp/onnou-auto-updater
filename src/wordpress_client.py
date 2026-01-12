@@ -207,6 +207,79 @@ class WordPressClient:
             **{'featured_media': media_id}
         )
 
+    def get_or_create_tags(self, tag_names: list) -> list:
+        """
+        タグ名のリストからタグIDのリストを取得（存在しない場合は作成）
+
+        Args:
+            tag_names: タグ名のリスト
+
+        Returns:
+            タグIDのリスト
+        """
+        tag_ids = []
+        endpoint = f"{self.api_base}/tags"
+
+        for tag_name in tag_names:
+            # 既存タグを検索
+            response = requests.get(
+                endpoint,
+                headers=self.headers,
+                params={'search': tag_name}
+            )
+
+            if response.status_code == 200:
+                tags = response.json()
+                if tags and tags[0]['name'].lower() == tag_name.lower():
+                    # 既存タグが見つかった
+                    tag_ids.append(tags[0]['id'])
+                    continue
+
+            # タグが見つからない場合は作成
+            response = requests.post(
+                endpoint,
+                headers=self.headers,
+                json={'name': tag_name}
+            )
+
+            if response.status_code == 201:
+                tag_ids.append(response.json()['id'])
+
+        return tag_ids
+
+    def get_all_posts(self, per_page: int = 100) -> list:
+        """
+        すべての投稿を取得する
+
+        Args:
+            per_page: 1ページあたりの投稿数
+
+        Returns:
+            投稿情報のリスト
+        """
+        endpoint = f"{self.api_base}/posts"
+        all_posts = []
+        page = 1
+
+        while True:
+            response = requests.get(
+                endpoint,
+                headers=self.headers,
+                params={'per_page': per_page, 'page': page}
+            )
+
+            if response.status_code != 200:
+                break
+
+            posts = response.json()
+            if not posts:
+                break
+
+            all_posts.extend(posts)
+            page += 1
+
+        return all_posts
+
     def test_connection(self) -> bool:
         """
         接続テストを行う

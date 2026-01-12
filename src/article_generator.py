@@ -54,25 +54,32 @@ class ArticleGenerator:
             }
         )
 
-        # レスポンスからタイトルと本文を抽出
+        # レスポンスからタイトル、説明、タグ、本文を抽出
         full_response = response.text
 
-        # [TITLE]...[/TITLE] と [CONTENT]...[/CONTENT] を抽出
         import re
         title_match = re.search(r'\[TITLE\](.*?)\[/TITLE\]', full_response, re.DOTALL)
+        description_match = re.search(r'\[DESCRIPTION\](.*?)\[/DESCRIPTION\]', full_response, re.DOTALL)
+        tags_match = re.search(r'\[TAGS\](.*?)\[/TAGS\]', full_response, re.DOTALL)
         content_match = re.search(r'\[CONTENT\](.*?)\[/CONTENT\]', full_response, re.DOTALL)
 
         if title_match and content_match:
             article_title = title_match.group(1).strip()
+            article_description = description_match.group(1).strip() if description_match else ""
+            article_tags = tags_match.group(1).strip() if tags_match else ""
             article_content = content_match.group(1).strip()
         else:
             # フォーマットが正しくない場合はフォールバック
             print("  ⚠ タイトル抽出失敗、テーマタイトルを使用")
             article_title = theme['title']
+            article_description = ""
+            article_tags = ""
             article_content = full_response
 
         return {
             'title': article_title,
+            'description': article_description,
+            'tags': article_tags,
             'content': article_content,
             'theme_id': theme['id']
         }
@@ -121,26 +128,35 @@ class ArticleGenerator:
 ❌ 「初心者向け」「おすすめ」の連呼
 
 # 必須要素
-✅ 最低1つの具体的な数値例（「リバーブは2秒」など）
-✅ 失敗パターンとその理由
-✅ 「今日からできること」の明示
-✅ 読者の誤解を解く一文
+✅ **最低2-3個の具体的な数値例**（「EQは100Hzで-3dB」「リバーブは2秒」など）
+✅ **失敗パターンと成功パターンの対比**
+✅ **「今日からできること」の明示**（ステップバイステップで）
+✅ **読者の誤解を解く一文**
+✅ **専門用語の深堀り説明**（なぜそうなるのか、物理・音響的な理由）
+✅ **プロの現場での実例**（「実際の制作現場では〜」など）
 
-# 記事構成（1200〜1800文字）
-## 導入（150-200文字）
-読者の悩みに共感し、この記事で得られることを明示
+# 記事構成（2000〜3000文字）
+## 導入（200-300文字）
+読者の悩みに共感し、この記事で得られることを明示。問題の重要性を強調
 
-## 問題の本質（300-400文字）
-なぜその問題が起きるのか、メカニズムを解説
+## 問題の本質（500-700文字）
+なぜその問題が起きるのか、**音響学的・物理的メカニズム**を深掘り解説
+専門用語を使いつつ、必ず噛み砕いて説明
 
-## 判断の軸（300-400文字）
+## 判断の軸（400-600文字）
 どう考えれば良いか、判断基準を提示
+**失敗例と成功例を対比**して理解を深める
 
-## 実践的アプローチ（400-500文字）
-具体例と実際の設定値、失敗パターンを含む
+## 実践的アプローチ（800-1000文字）
+具体例を**最低2-3個**含める
+- 実際の設定値（数値を明記）
+- 手順をステップバイステップで
+- 失敗パターンと回避方法
+- プロの現場での実例やコツ
 
-## まとめ（100-150文字）
+## まとめ（150-200文字）
 要点を3つ以内に凝縮し、次のアクションを提示
+「今日から試せること」を具体的に
 
 # SEO最適化タイトルの作成
 まず、テーマに基づいてSEO最適化されたタイトルを生成してください。
@@ -170,12 +186,32 @@ class ArticleGenerator:
 4. 強い言葉を使う（絶対に、即効、完全、徹底など）
 5. 30〜40文字程度
 
+# メタディスクリプションの作成
+記事の内容を120文字程度で要約したメタディスクリプションを作成してください。
+- 検索結果に表示される文章
+- 記事の核心的な価値を伝える
+- アクションを促す表現（「〜を解説」「〜がわかる」など）
+
+# タグの自動生成
+記事内容に関連するタグを5-10個生成してください。
+- 具体的なキーワード（「ミックス」「EQ」「コンプレッサー」など）
+- 検索されやすい用語
+- カンマ区切りで出力
+
 # 出力形式
-以下の形式で出力してください：
+以下の形式で**必ず守って**出力してください：
 
 [TITLE]
 SEO最適化されたタイトルをここに
 [/TITLE]
+
+[DESCRIPTION]
+120文字程度のメタディスクリプション
+[/DESCRIPTION]
+
+[TAGS]
+タグ1,タグ2,タグ3,タグ4,タグ5
+[/TAGS]
 
 [CONTENT]
 HTML形式の記事本文（以下のタグのみ使用）：
@@ -208,6 +244,14 @@ HTML形式の記事本文（以下のタグのみ使用）：
 [TITLE]
 モノラルで音が消える原因はコレ！即効で改善する5つのチェックポイント
 [/TITLE]
+
+[DESCRIPTION]
+ステレオでは問題ないのにモノラルで音が消える位相の問題を徹底解説。原因のメカニズムから具体的な確認方法、5つの改善ポイントまで、初心者でもすぐ実践できる内容をプロが伝授します。
+[/DESCRIPTION]
+
+[TAGS]
+ミキシング,位相,モノラル,ステレオ,DTM,音が消える,トラブル対処,初心者向け
+[/TAGS]
 
 [CONTENT]
 <h2>モノラルで聴くと音が消える現象</h2>
@@ -282,6 +326,80 @@ HTML形式の記事本文（以下のタグのみ使用）：
             print(f"  デフォルトカテゴリ「歌い手活動」を使用")
             return 1  # デフォルト: 歌い手活動
 
+    def add_internal_links(self, content: str, title: str, existing_posts: list, max_links: int = 2) -> str:
+        """
+        記事本文に内部リンクを挿入する
+
+        Args:
+            content: 記事本文（HTML）
+            title: 記事タイトル
+            existing_posts: 既存記事のリスト [{'title': ..., 'link': ...}, ...]
+            max_links: 挿入する最大リンク数
+
+        Returns:
+            内部リンクを挿入した記事本文
+        """
+        if not existing_posts or len(existing_posts) < 3:
+            return content  # 既存記事が少ない場合はスキップ
+
+        # 既存記事のタイトル一覧を作成
+        posts_list = "\n".join([f"- {post['title']}" for post in existing_posts[:30]])  # 最大30件
+
+        prompt = f"""あなたは内部リンク最適化の専門家です。
+
+# 現在の記事タイトル
+{title}
+
+# 既存記事一覧（最大30件）
+{posts_list}
+
+# タスク
+上記の既存記事の中から、現在の記事と**最も関連性が高い記事を{max_links}個**選んでください。
+
+# 選定基準
+1. テーマの関連性（同じジャンル、関連技術）
+2. 読者の次のアクションとして自然
+3. 補完関係（現在の記事で触れていないが関連する内容）
+
+# 出力形式
+関連記事のタイトルを{max_links}個、改行区切りで出力してください。タイトルだけを出力し、説明は不要です。
+
+出力例:
+ボーカルミックスで差がつく7つのテクニック
+コンプレッサーの使い方完全ガイド
+"""
+
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config={'temperature': 0.3}
+            )
+            related_titles = [line.strip() for line in response.text.strip().split('\n') if line.strip()]
+
+            # 選ばれた記事のリンクを取得
+            related_posts = []
+            for post in existing_posts:
+                if post['title'] in related_titles:
+                    related_posts.append(post)
+                if len(related_posts) >= max_links:
+                    break
+
+            if not related_posts:
+                return content
+
+            # 記事本文の末尾に関連記事セクションを追加
+            links_html = "\n\n<h2>あわせて読みたい</h2>\n<ul>\n"
+            for post in related_posts:
+                links_html += f'<li><a href="{post["link"]}">{post["title"]}</a></li>\n'
+            links_html += "</ul>"
+
+            # contentの末尾に追加
+            return content + links_html
+
+        except Exception as e:
+            print(f"  ⚠ 内部リンク生成エラー: {e}")
+            return content
+
 
 def main():
     """メイン処理"""
@@ -322,6 +440,26 @@ def main():
         print("エラー: WordPressへの接続に失敗しました")
         sys.exit(1)
     print("✓ WordPress接続成功")
+
+    # カテゴリバランスを表示
+    try:
+        recent_posts = wp_client.get_all_posts(per_page=10)
+        if recent_posts:
+            from collections import Counter
+            category_counts = Counter()
+            category_names = {7: 'DTM', 8: 'ミキシング＆マスタリング', 9: '作曲・編曲', 1: '歌い手活動'}
+
+            for post in recent_posts:
+                for cat_id in post.get('categories', []):
+                    if cat_id in category_names:
+                        category_counts[category_names[cat_id]] += 1
+
+            if category_counts:
+                print(f"\n直近10記事のカテゴリ分布:")
+                for cat_name, count in category_counts.most_common():
+                    print(f"  {cat_name}: {count}記事")
+    except Exception as e:
+        print(f"  ⚠ カテゴリバランス表示エラー: {e}")
 
     # 未使用テーマの確認
     unused_count = theme_manager.get_unused_count()
@@ -391,6 +529,35 @@ def main():
         print(f"  ⚠ カテゴリ判定エラー: {e}")
         category_id = 1  # デフォルト: 歌い手活動
 
+    # タグを処理
+    tag_ids = []
+    if article.get('tags'):
+        print("\nタグを処理中...")
+        try:
+            tag_names = [tag.strip() for tag in article['tags'].split(',')]
+            tag_ids = wp_client.get_or_create_tags(tag_names)
+            print(f"  ✓ {len(tag_ids)}個のタグを設定")
+        except Exception as e:
+            print(f"  ⚠ タグ処理エラー: {e}")
+
+    # 内部リンクを追加
+    print("\n内部リンクを追加中...")
+    try:
+        existing_posts = wp_client.get_all_posts(per_page=30)
+        if existing_posts:
+            posts_data = [{'title': post['title']['rendered'], 'link': post['link']} for post in existing_posts]
+            article['content'] = article_generator.add_internal_links(
+                content=article['content'],
+                title=article['title'],
+                existing_posts=posts_data,
+                max_links=2
+            )
+            print(f"  ✓ 既存記事{len(existing_posts)}件から関連記事を選定")
+        else:
+            print(f"  ⚠ 既存記事が見つからないためスキップ")
+    except Exception as e:
+        print(f"  ⚠ 内部リンク追加エラー: {e}")
+
     # WordPressに下書き投稿
     print("\nWordPressに投稿中...")
     try:
@@ -401,7 +568,8 @@ def main():
             title=article['title'],
             content=article['content'],
             status=status,
-            categories=[category_id]
+            categories=[category_id],
+            tags=tag_ids if tag_ids else None
         )
 
         post_id = result['id']
