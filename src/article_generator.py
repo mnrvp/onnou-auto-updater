@@ -15,6 +15,14 @@ from image_manager import ImageManager
 class ArticleGenerator:
     """Gemini APIを使った記事生成クラス"""
 
+    # WordPressカテゴリマッピング
+    CATEGORY_MAP = {
+        'DTM': 7,
+        'ミキシング＆マスタリング': 8,
+        '作曲・編曲': 9,
+        '歌い手活動': 1
+    }
+
     def __init__(self, api_key: str, model: str = "models/gemini-2.5-flash"):
         """
         Args:
@@ -150,6 +158,71 @@ HTML形式で出力してください。以下のタグのみ使用：
 """
         return prompt
 
+    def determine_category(self, title: str, theme: dict) -> int:
+        """
+        記事タイトルとテーマからカテゴリを判定する
+
+        Args:
+            title: 記事タイトル
+            theme: テーマ情報
+
+        Returns:
+            カテゴリID
+        """
+        prompt = f"""あなたはDTM/宅録専門ブログのカテゴリ分類担当です。
+
+以下の記事タイトルとテーマから、最も適切なカテゴリを1つ選んでください。
+
+# 記事タイトル
+{title}
+
+# テーマ情報
+悩み: {theme.get('target_pain', '')}
+アプローチ: {theme.get('approach', '')}
+
+# カテゴリ選択肢
+1. DTM - 機材、ソフトウェア、DAW、プラグイン、環境設定、PC/Mac関連
+2. ミキシング＆マスタリング - ミックス技術、マスタリング、音量調整、EQ、コンプレッサー、エフェクト処理
+3. 作曲・編曲 - 作曲理論、編曲技術、音楽理論、コード進行、メロディ作成、アレンジ
+4. 歌い手活動 - ボーカル録音、歌唱技術、マイク選び、ボーカルミックス、歌ってみた
+
+# 判定基準
+- 記事の**主な内容**がどのカテゴリに最も近いか
+- 複数のカテゴリに該当する場合は、最も中心的なテーマを選ぶ
+- 例：「ボーカルが引っ込む」→ ミキシングの問題なので「ミキシング＆マスタリング」
+- 例：「モノラルで音が消える」→ 位相の問題、ミックス技術なので「ミキシング＆マスタリング」
+- 例：「DTMに必要な機材」→ 機材選びなので「DTM」
+- 例：「コード進行の作り方」→ 作曲理論なので「作曲・編曲」
+
+**カテゴリ名だけを出力してください。説明は不要です。**
+
+出力例：
+ミキシング＆マスタリング
+"""
+
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config={'temperature': 0.3}
+            )
+            category_name = response.text.strip()
+
+            # カテゴリ名からIDを取得
+            category_id = self.CATEGORY_MAP.get(category_name)
+
+            if category_id:
+                print(f"  カテゴリ判定: {category_name} (ID: {category_id})")
+                return category_id
+            else:
+                print(f"  ⚠ カテゴリ判定失敗: '{category_name}' は未定義")
+                print(f"  デフォルトカテゴリ「歌い手活動」を使用")
+                return 1  # デフォルト: 歌い手活動
+
+        except Exception as e:
+            print(f"  ⚠ カテゴリ判定エラー: {e}")
+            print(f"  デフォルトカテゴリ「歌い手活動」を使用")
+            return 1  # デフォルト: 歌い手活動
+
 
 def main():
     """メイン処理"""
@@ -248,6 +321,17 @@ def main():
     #         print(f"⚠ 本文画像挿入エラー: {e}")
     #         print("  画像なしで続行します")
 
+    # カテゴリを判定
+    print("\nカテゴリを判定中...")
+    try:
+        category_id = article_generator.determine_category(
+            title=article['title'],
+            theme=theme
+        )
+    except Exception as e:
+        print(f"  ⚠ カテゴリ判定エラー: {e}")
+        category_id = 1  # デフォルト: 歌い手活動
+
     # WordPressに下書き投稿
     print("\nWordPressに投稿中...")
     try:
@@ -257,7 +341,8 @@ def main():
         result = wp_client.create_post(
             title=article['title'],
             content=article['content'],
-            status=status
+            status=status,
+            categories=[category_id]
         )
 
         post_id = result['id']
