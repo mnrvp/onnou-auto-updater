@@ -312,7 +312,7 @@
       ],
       "target_pain": "低音がボワついたり、逆に迫力がなく締まらない音になってしまう。",
       "approach": "低音域の周波数特性と楽器ごとの役割を理解し、トラック全体の重心を適切にコントロールする。",
-      "used": false
+      "used": true
     },
     {
       "id": 24,
@@ -343,6 +343,47 @@
       ],
       "target_pain": "ボーカルがオケに馴染まず、浮いて聞こえたり、逆に埋もれてしまったりする。",
       "approach": "ボーカルの適切な定位（前後）とダイナミクスを理解し、EQとコンプを駆使してオケとの一体感を出す。",
+      "used": false
+    },
+    {
+      "id": 26,
+      "title": "ミックスの音量調整ができないのは「主役」が決まってないから",
+      "keywords": [
+        "volume balance",
+        "mixing hierarchy",
+        "arrangement focus",
+        "relative loudness"
+      ],
+      "target_pain": "各楽器の音量バランスが取れず、全体がごちゃついてまとまらない。",
+      "approach": "楽曲における音の「主役」と「脇役」を明確にし、相対的な音量関係で楽曲全体のバランスを取る。",
+      "used": false
+    },
+    {
+      "id": 27,
+      "title": "打ち込みが機械的に聞こえるのは「人間味」がないから",
+      "keywords": [
+        "MIDI programming",
+        "groove",
+        "humanization",
+        "velocity variation",
+        "timing adjustment"
+      ],
+      "target_pain": "打ち込みのドラムやベースが単調で、生っぽいグルーブが出せない。",
+      "approach": "クオンタイズの調整、ベロシティの変化、オフグリッドな揺らぎを取り入れて人間らしいグルーブを生み出す。",
+      "used": false
+    },
+    {
+      "id": 28,
+      "title": "ボーカルが浮く/埋もれるのは「居場所」を作ってないから",
+      "keywords": [
+        "vocal mixing",
+        "vocal presence",
+        "frequency space",
+        "vocal effects",
+        "mix integration"
+      ],
+      "target_pain": "ボーカルが楽曲に馴染まず、浮いて聞こえたり、逆に埋もれてしまったりする。",
+      "approach": "EQで周波数帯を整理し、空間系エフェクトで他の楽器との「居場所」を調整してボーカルを定着させる。",
       "used": false
     }
   ]
